@@ -1,0 +1,133 @@
+Consulting MindSet - Punctuality
+Transformation - Adaptable to the changes
+Ownership - 
+Trust - 
+
+//Adding foreign key constraint
+------------------------------------
+create table dept(DepCode numeric(3) primary key,deptname varchar(50) not null);
+
+
+
+insert into dept values(10,'Learning and Development');
+insert into dept values(20,'Resources');
+insert into dept values(30,'IS');
+
+
+
+create table emp(empid numeric(7) PRIMARY KEY,
+empname varchar(30) not null,
+email varchar(30) unique,
+phone numeric(10),
+salary numeric(10,2)check (salary > 10000),
+deptcode numeric(3) references dept(depCode),
+ManagerEmpId numeric(7));
+
+
+//Self Referencing Foreign key
+--------------------------------------
+create table emp(empid numeric(7) PRIMARY KEY,
+empname varchar(30) not null,
+email varchar(30) unique,
+phone numeric(10),
+salary numeric(10,2)check (salary > 10000),
+deptcode numeric(3) references dept(depCode),
+ManagerEmpId numeric(7) references emp(empid));
+
+//Composite key
+--------------------------------------
+create table courseRegistration(courseCode varchar(10), 
+EmpId numeric(7), 
+StartDate Date, 
+EndDate Date, 
+AssessmentScore numeric(3) check(AssessmentScore > 0), 
+primary key(courseCode, EmpId));
+
++------------+-------+------------+------------+-----------------+
+| courseCode | EmpId | StartDate  | EndDate    | AssessmentScore |
++------------+-------+------------+------------+-----------------+
+| DB101      |  1001 | 2021-12-07 | 2021-12-09 |              65 |
+| DB102      |  1002 | 2022-01-06 | 2022-01-08 |              90 |
+| DB103      |  1003 | 2022-02-08 | 2022-02-10 |              90 |
+| DB103      |  1004 | 2022-03-09 | 2022-03-11 |              80 |
++------------+-------+------------+------------+-----------------+
+4 rows in set (0.00 sec)
+It allow one column with duplicate value because we are having more
+than one column as primary key. It will not allowed to insert both column
+with duplicate value.
+
+//Add constraint by Alter :-
+------------------------------------------
+create table emp(empid numeric(7) ,
+empname varchar(30) ,
+email varchar(30) ,
+phone numeric(10),
+salary numeric(10,2),
+deptcode numeric(3),
+ManagerEmpId numeric(7));
+
+1) Primary key-
+Alter table emp add constraint Primary key(EmpId);
+
+2) Self referencing foreign key -
+Alter table emp add Constraint foreign key(ManagerEmpId) references emp(empId);
+
+3) Foreign key-
+Alter table emp add Constraint foreign key(deptCode) references dept(DepCOde);
+
+//Drop constraint of unnamed foreignkey
+----------------------------------------------
+1) use information_schema;
+2) select * from table_constraints; --- By using this command we can check the bydefault name of the constraint
+   which was given by system.
+3) Or by third step also we can get the name of the constraints :- 
+  Select constraint_name from information_schema.table_constraints where table_name = 'emp';
+4) COMMAND TO DELETE THE FOREIGN KEY;
+  -> Alter table emp drop foreign key emp_ibfk_1;
+   +-----------------+
+| constraint_name |
++-----------------+
+| PRIMARY         |
+| empId           |
+| email           |
+| emp_ibfk_2      |
++-----------------+
+
+//Sub query 
+Corelated subquery :-
+-------------------------
+1)select empid, empname, salary from emp e1 where salary<(Select avg(salary) from emp e2 where e2.deptcode = e1.deptcode);
+2) mysql> select empid, empname, salary,deptcode from emp e1 where salary=(Select max(salary) from emp e2 where e2.deptcode = e1.deptcode);
++-------+---------+----------+----------+
+| empid | empname | salary   | deptcode |
++-------+---------+----------+----------+
+|  1001 | Scott   | 20000.00 |       10 |
+|  1002 | Aparna  | 45000.00 |       20 |
+|  1003 | Jack    | 45000.00 |       30 |
++-------+---------+----------+----------+
+3 rows in set (0.00 sec)
+
+Non-corelated query :-
+-------------------------
+mysql> select empid, empname from emp where empid in(Select empid from courseregistration group by empid having count(*)>1);
+Empty set (0.00 sec)
+
+mysql> select empid, empname from emp where empid in(Select empid from courseregistration group by empid having count(*)=1);
++-------+---------+
+| empid | empname |
++-------+---------+
+|  1001 | Scott   |
+|  1002 | Aparna  |
+|  1003 | Jack    |
+|  1004 | Ram     |
++-------+---------+
+4 rows in set (0.00 sec)
+
+//Inner join
+-------------------------------------------
+ select empName,deptname,coursename from 
+emp inner join dept on emp.deptcode = dept.depcode 
+inner join courseregistration cr on emp.empid = cr.empid 
+inner join course on cr.coursecode = course.coursecode;
+
+GIT LEaRNING
